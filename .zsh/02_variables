@@ -1,0 +1,115 @@
+# File: $(HOME)/.zsh/01_variables
+
+####
+#
+# (c) 2006-2014, Bjoern Rennhak
+# Z-shell configuration file - 02_variables
+#
+# Dual licensed under MIT and GPLv2.
+#
+##########
+
+
+
+# Prompt
+# Shows as e.g. " [11:04][br@gemini:~]% "   with text in green and bracets in white.
+# Scheme is: [ HH:MM ][ USERNAME@HOSTNAME:DIRECTORY ]% 
+# PS1="$(print '[%{\e[1;32m%}%B%T%b%{\e[0m%}][%{\e[1;32m%}%B%n@%m%b%{\e[0m%}:%3~]%% ')"
+
+
+# \033[G  Fixes the CTRL+C character shift problem
+PS1="$(print '[%{\e[1;32m%}%B%T%b%{\e[0m%}][%{\e[1;32m%}%B%n@%m%b%{\e[0m%}:%3~]%%\e[G ')"
+
+eval `dircolors -b`
+
+# Paths
+SYSTEM=~/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/bin
+EDITORS=/opt/vim7/bin
+WM=/opt/e17/bin
+COMPILERS=/usr/lib/llvm/llvm/gcc-4.2/bin:/opt/cuda/bin
+TOOLS=/usr/local/installjammer
+GAMES=/usr/games/bin/
+ANDROID=/root/companies/wowtech/projects/base/android-sdk/tools
+
+NODE=/home/br/node_modules/.bin
+
+export PATH=$SYSTEM:$EDITORS:$WM:$COMPILERS:$ANDROID:$NODE:$PATH
+export LD_LIBRARY_PATH=/opt/cuda/lib:$LD_LIBRARY_PATH
+
+# Ruby bug
+export RUBYOPT=""
+
+# Gentoo Editor variable normally found in /etc/rc.conf
+export EDITOR="/usr/bin/vim"
+
+
+# Set a LARGE history file size and vitual history size
+export HISTSIZE=10000
+export SAVEHIST=5000
+
+# Our history file
+export HISTFILE=~/.zhistory
+
+# Editor
+export RSENSE_HOME=/home/br/software/rsense
+
+setopt INC_APPEND_HISTORY                                     # We want the shell to write stuff whenever we execute a command
+setopt SHARE_HISTORY                                          # We want to share history between open shells
+setopt EXTENDED_HISTORY                                       # We want timestamps in the history
+setopt EXTENDED_GLOB
+
+# Tab Completion
+zstyle ':completion:*' completer _expand _complete _approximate
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' max-errors 10
+zstyle ':completion:*' prompt '$%e$:'
+zstyle :compinstall filename '$HOME/.zshrc'
+autoload -Uz compinit
+compinit
+
+# cd into directory without using cd
+setopt autocd
+# cdable_vars # It will allow you to cd to a variable 
+
+
+# Activate this in order to always have a set DISPLAY variable
+# if [ ! -z "$DISPLAY" ]
+# then
+#     (xset b 0 0 0 || true)
+# fi
+
+# Language (sets deprecated and new interface)
+
+if [ $XTERM_LOCALE = "en_US.UTF-8" ]
+then 
+  export LANG="en_US.UTF-8"
+  export LC_ALL="en_US.UTF-8"
+else
+  export LANG="en_US"
+  export LC_ALL="en_US"
+fi
+
+export PYTHONSTARTUP=~/.pythonrc.py
+
+# Security - paranoid setting. Less restrictive would be 022.
+umask 077
+
+# Set this if you want a 256 color shell
+# tput colors
+# apt-get install ncurses-term
+export TERM=xterm-256color
+
+# SSH Agent
+# http://www.securityfocus.com/infocus/1812
+# http://unixwiz.net/techtips/ssh-agent-forwarding.html
+SSH_ENV="$HOME/.ssh/environment"
+
+setopt NO_BEEP                                                # No annoying beeps please
+
+# iBus
+export XMODIFIERS="@im=ibus"
+export GTK_IM_MODULE="ibus"
+export QT_IM_MODULE="xim"
+# ibus-daemon -d -x
+
+# EOF

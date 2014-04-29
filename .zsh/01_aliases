@@ -1,0 +1,107 @@
+# File: $(HOME)/.zsh/01_aliases
+
+####
+#
+# (c) 2006-2014, Bjoern Rennhak
+# Z-shell configuration file - 01_aliases
+#
+# Dual licensed under MIT and GPLv2.
+#
+##########
+
+
+# Shell
+alias d='dirs -v'
+
+
+# GNU Tools
+alias ls="/bin/ls --color=auto $*"
+alias ll="/bin/ls --color=auto -l $*"
+alias la="/bin/ls --color=auto -la $*"
+alias mv='nocorrect mv'                       # no spelling correction on mv
+alias cp='nocorrect cp'                       # no spelling correction on cp
+alias mkdir='nocorrect mkdir'                 # no spelling correction on mkdir
+alias su='su -'
+alias h=history
+alias lsd='ls -ld *(-/DN)'                    # List only dirs and symbolic links that point to dirs
+alias md='mkdir -p $*'
+alias rd='rmdir $*'
+alias igrep='grep -i $*'
+alias today="date '+%d_%m_%Y'"
+alias cgrep="egrep --color=always $*"
+alias largest="du -hsx * | sort -rh | head -25"
+
+# Other Tools: Networking/Mail
+alias pc="proxychains $*"
+alias net='sudo dhclient'
+alias mounted='mount | column -t'
+# alias m='muttng'                            # Our beloved CLI MUA
+
+# Other Tools: Video/Picture/Audio
+alias slide='qiv -rtfs --delay=4 $*'
+alias mslide='qiv -rtfms --delay=4 $*'
+alias mdump='mplayer -dumpstream $*'
+alias mmplayer='mplayer -really-quiet -framedrop -cache 8192 -ao oss -vo x11 -zoom $*'
+alias berylmplayer='mplayer -vo x11 -zoom $*'
+alias downloadIt="mplayer -dumpstream `xclip -o`"
+alias clock='sudo /etc/init.d/ntpdate restart'
+alias sshatty="ssh-agent sh -c 'ssh-add < /dev/null && bash'"
+alias alsarestart="sudo /etc/init.d/alsasound restart"
+
+# Other Tools: Terminal
+alias futzelterm='xterm -bg black -fg white -cr white -fn -xos4-terminus-medium-r-normal--32-320-72-72-c-0-koi8-u'
+alias slowdayterm='xterm -bg black -fg white -cr white -fn -xos4-terminus-medium-r-normal--14-140-72-72-c-0-koi8-u'
+alias normalfontterm='xterm -bg black -fg white -cr white -fn -xos4-terminus-medium-r-normal--20-200-72-72-c-0-koi8-u'
+alias tiredterm='xterm -bg black -fg white -cr white -fn -xos4-terminus-medium-r-normal--24-240-72-72-c-0-koi8-u'
+alias hugeterm='xterm -bg black -fg white -cr white -fn -xos4-terminus-medium-r-normal--32-320-72-72-c-0-koi8-u'
+
+# Other Tools: Programming Languages
+alias eman="erl -man $*"
+
+# Other Tools: ACPI
+alias suspendmem="sudo su -c 'echo \"mem\" > /sys/power/state' "
+
+
+# Shameful MS-DOS survival helpers - "old habits die slowly"
+alias cd..='cd ..'
+# alias dir='ls --color=auto --format=vertical'
+
+# Thanks to derekwyatt for this 
+alias g='vim --remote-silent'
+
+# Git shortcuts
+# Thanks go to Peteris Krumins
+# http://catonmat.net/
+alias ga='git add'
+alias gp='git push --tags'
+# alias gl='git log --pretty=oneline --all --graph'
+
+# This line was inspired by Filipe Kiss, http://coderwall.com/p/euwpig?i=3&p=1&t=git
+alias gl="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+
+alias gs='git status -sb'
+alias gd='git diff'
+alias gm='git commit -m'
+alias gma='git commit -am'
+alias gb='git branch'
+alias gc='git checkout'
+alias gra='git remote add'
+alias grr='git remote rm'
+alias gpu='git pull'
+alias gcl='git clone'
+alias grdy='git rebase -i @{u}'
+
+# Git flow
+alias gf='git flow $*'
+
+# Screen grab video
+alias grabvideoofscreen='ffmpeg -f x11grab -s wxga -r 25 -i :0.0 -sameq /tmp/out.mpg'
+
+alias setserverdate='ssh -q br@spring date | head -1 | sed "s/......\([A-Z].*\)/\1/g" | xargs -I% sudo date -s %'
+alias setresolvconf='sudo cp -v /etc/resolv.conf.backup /etc/resolv.conf'
+
+alias jsonpp='python -mjson.tool'
+
+
+# EOF

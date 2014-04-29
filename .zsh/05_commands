@@ -1,0 +1,50 @@
+# File: $(HOME)/.zsh/05_commands
+
+####
+#
+# (c) 2006-2010, Bjoern Rennhak
+# Z-shell configuration file - 05_commands
+#
+# Dual licensed under MIT and GPLv2.
+#
+##########
+
+
+
+# SSH Agent
+#http://www.securityfocus.com/infocus/1812
+# http://unixwiz.net/techtips/ssh-agent-forwarding.html
+# Source SSH settings, if applicable
+# if [ -f "${SSH_ENV}" ]; then
+#      . "${SSH_ENV}" > /dev/null
+#      #ps ${SSH_AGENT_PID} doesnât work under cywgin
+#      ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+#          start_agent;
+#      }
+# else
+#      start_agent;
+# fi 
+
+# Do autocompletion on .ssh hosts we know
+if [ -e $HOME/.ssh/known_hosts ]
+then
+    hosts=(${${${${(f)"$(<$HOME/.ssh/known_hosts)"}:#[0-9]*}%%\ *}%%,*})
+    zstyle ':completion:*:hosts' hosts $hosts
+fi
+
+# Load keychains for ssh
+(keychain > /dev/null 2> /dev/null)
+. ~/.keychain/genshi-sh
+
+ssh-fix
+
+# Activate mouse keys
+xkbset m
+
+# Add Terminus font to gentoo
+xset fp+ /usr/share/fonts/terminus
+
+# Set mouse speed
+xset m 5 1
+
+# EOF

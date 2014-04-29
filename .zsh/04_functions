@@ -1,0 +1,271 @@
+# File: $(HOME)/.zsh/04_functions
+
+####
+#
+# (c) 2006-2010, Bjoern Rennhak
+# Z-shell configuration file - 04_functions
+#
+# Dual licensed under MIT and GPLv2.
+#
+##########
+
+
+# Pretty coloring for ssh commands
+function ssh() {
+    echo -n -e "\033k$1\033\\"
+    /usr/bin/ssh "$@"
+    echo -n -e "\033kzsh\033\\"
+}
+
+function see() {
+
+  if [ "$1" = "" ]; then
+    echo "Need some http url as argument";
+  else
+    echo "Downloading $1 to /tmp/see.tmp"
+    wget --quiet --no-check-certificate -O "/tmp/see.tmp" $1
+    qiv /tmp/see.tmp
+    echo "Removing /tmp/see.tmp"
+    rm /tmp/see.tmp
+  fi
+}
+
+# Possible wrapper if we want to have a ssh/rsync + port shortcut
+# function assh()
+# {
+#   thost=$1
+#    shift
+#    ssh $thost -p 61000 "$@"
+# }
+#
+# function arsync()
+# {
+#   /usr/bin/rsync -avPr --rsh="ssh -p 61000" $@
+# }
+
+
+
+# Maintains a jump-list of directories you actually use
+# old directories eventually fall off the list
+# Ported to zsh from http://github.com/rupa/j
+#
+# INSTALL:
+#   source into .zshrc
+#   cd around for a while
+#
+# USE:
+#   j [--l] [regex1 ... regexn]
+#     regex1 ... regexn jump to the most used directory matching all masks
+#     --l               show the list instead of jumping
+#                       with no args, returns full list
+j() {
+ # change jfile if you already have a .j file for something else
+ jfile=$HOME/.j
+ if [ "$1" = "--add" ]; then
+  shift
+  # we're in $HOME all the time, let something else get all the good letters
+  if [[ "$*" = "$HOME" ]]; then
+  fi
+
+  awk -v q="$*" -v mx=1000 -F"|" '
+   $2 >= 1 { 
+    if( $1 == q ) { l[$1] = $2 + 1; x = 1 } else l[$1] = $2
+    y += $2
+   }
+   END {
+    x || l[q] = 1
+    if( y > mx ) {
+     for( i in l ) print i "|" l[i]*(0.9*mx/y) # aging
+    } else for( i in l ) print i "|" l[i]
+   }
+  ' $jfile 2>/dev/null > $jfile.tmp
+  mv -f $jfile.tmp $jfile
+ elif [ "$1" = "" ];then
+  cd ~
+ elif [ "$1" = "--l" ];then
+  shift
+  awk -v q="$*" -F"|" '
+   BEGIN { split(q,a," ") }
+   { for( o in a ) $1 !~ a[o] && $1 = ""; if( $1 ) print $2 "\t" $1 }
+  ' $jfile 2>/dev/null | sort -n
+ else
+  # prefer case sensitive
+  cd=$(awk -v q="$*" -F"|" '
+   BEGIN { split(q,a," ") }
+   { for( o in a ) $1 !~ a[o] && $1 = ""; if( $1 ) { print $2 "\t" $1; x = 1 } }
+   END {
+    if( x ) exit
+    close(FILENAME)
+    while( getline < FILENAME ) {
+     for( o in a ) tolower($1) !~ tolower(a[o]) && $1 = ""
+     if( $1 ) print $2 "\t" $1
+    }
+   }
+  ' $jfile 2>/dev/null | sort -nr | head -n 1 | cut -f 2)
+  [ "$cd" ] && cd "$cd"
+ fi
+}
+
+function precmd()  { 
+    j --add "$(pwd -P)" 
+}
+
+# zsh completions for j
+compdef _files j
+
+# # WCD 
+# # source /usr/share/wcd/wcd-include.sh
+# function wcd()
+# {
+#     cd "`/usr/lib/wcd/wcd.exec -j $*`"
+# }
+
+
+# SSH Agent
+# http://www.securityfocus.com/infocus/1812
+# http://unixwiz.net/techtips/ssh-agent-forwarding.html
+function start_agent {
+     echo "Initialising new SSH agent..."
+     /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+     echo succeeded
+     chmod 600 "${SSH_ENV}"
+     . "${SSH_ENV}" > /dev/null
+     /usr/bin/ssh-add;
+}
+
+
+# execute this function after each cd. It will look for .todo (a devtodo file) and execute `todo` if
+# it exists
+function devtodo {
+  if [ -e ./.todo ]
+  then
+    todo
+  fi
+}
+
+# corresponding cd change for devtodo
+cd() { builtin cd "$@"; devtodo }
+
+###########
+# Git info in your ZSH Prompt
+# Credit: http://briancarper.net/blog/570/git-info-in-your-zsh-prompt
+#
+# I used some Unicode to display colored circles. Green if there are staged
+# changes, yellow if there are unstaged changes, and red if there are new
+# untracked-yet-unignored files.
+#####
+autoload -Uz vcs_info
+ 
+zstyle ':vcs_info:*' stagedstr '%F{28}#'
+zstyle ':vcs_info:*' unstagedstr '%F{11}#'
+zstyle ':vcs_info:*' check-for-changes true
+zstyle ':vcs_info:(sv[nk]|bzr):*' branchformat '%b%F{1}:%F{11}%r'
+zstyle ':vcs_info:*' enable git svn
+precmd () {
+    if [[ -z $(git ls-files --other --exclude-standard 2> /dev/null) ]] {
+        zstyle ':vcs_info:*' formats '][%F{green}%b:%c%u%F{white}'
+    } else {
+        zstyle ':vcs_info:*' formats '][%F{green}%b:%c%u%F{red}*%F{white}'
+    }
+ 
+    vcs_info
+}
+
+setopt prompt_subst
+
+
+###
+#
+# RVM / RBENV Integration into Prompt
+# Credit: https://github.com/robbyrussell/oh-my-zsh/blob/master/themes/fino.zsh-theme
+#
+# Turns only 'on' in a git environment
+#
+#######
+
+function shiny {
+  rvm_ruby=''
+  if which rvm-prompt &> /dev/null; then
+    rvm_ruby="$(rvm-prompt i v g)"
+  else
+    if which rbenv &> /dev/null; then
+      rvm_ruby='$(rbenv version | sed -e "s/ (set.*$//")'
+    fi
+  fi
+
+  if [[ -n $vcs_info_msg_0_ ]] {
+    echo "[%F{green}$rvm_ruby%F{white}]"
+  } else {
+    echo ""
+  }
+}
+
+#PROMPT='%F{blue}%n@%m %c${vcs_info_msg_0_}%F{blue} %(?/%F{blue}/%F{red})%% %{$reset_color%} '
+PROMPT='[%F{green}%B%T%b][%F{green}%B%n@%m%F{white}%b:%c${vcs_info_msg_0_}%F{blue}%(?/%F{blue}/%F{red})% %F{white}]$(shiny)%% '
+
+# Autocomplete from manuals
+zstyle ':completion:*:manuals'    separate-sections true
+zstyle ':completion:*:manuals.*'  insert-sections   true
+zstyle ':completion:*:man:*'      menu yes select
+
+
+#PROMPT='[%F{green}%B%T%b][%F{green}%B%n@%m%b%{%F{white}:%3~][%c${vcs_info_msg_0_}%F{blue} %(?/%F{blue}/%F{red})%% ] %F{white} '
+
+# [2:12][br@localhost:~]%
+# [2:20][br@localhost:/home]% 
+#  PS1="$(print '[%{\e[1;32m%}%B%T%b%{\e[0m%}][%{\e[1;32m%}%B%n@%m%b%{\e[0m%}:%3~]%% ')"
+
+
+# Simple type conversion helpers - inspired by http://www.cyberciti.biz/faq/linux-unix-convert-hex-to-decimal-number/
+hex2dec () {
+  echo "ibase=16; $@"|bc
+}
+
+dec2hex () {
+  echo "obase=16; $@"|bc
+}
+
+
+# Hack to see if there are new commits to pull from remote
+# Credit: http://h3manth.com/new/blog/2013/auto-notify-git-pull/
+# http://www.reddit.com/r/programming/comments/1dh6oa/auto_notify_git_pull/
+# More ideas: http://stackoverflow.com/questions/3258243/git-check-if-pull-needed
+# cd () {
+#   async() {
+#     {
+#       $2 $($1)
+#     }&
+#   }
+# 
+#   notify_callback() {
+#     [[ $1 > 0 ]] && echo "You have new stuff to pull!"
+#   }
+# 
+#   # If it's a git repo, check if we need to pull.
+#   if git rev-parse --is-inside-work-tree &>/dev/null; then
+#     async "git rev-list HEAD...origin/master --count" notify_callback
+#   fi
+#  
+#   builtin cd "$@"
+# }
+
+
+# Detect empty enter, execute git status if in git dir
+magic-enter () {
+        if [[ -z $BUFFER ]]; then
+          if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+            echo -ne '\n'
+            git status -sb
+          fi
+          zle accept-line
+        else
+          zle accept-line
+        fi
+}
+zle -N magic-enter
+bindkey "^M" magic-enter
+
+
+hr(){printf '=%.0s' $(seq $COLUMNS)}
+
+# EOF

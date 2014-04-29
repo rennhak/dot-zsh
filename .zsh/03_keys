@@ -1,0 +1,34 @@
+# File: $(HOME)/.zsh/03_keys
+
+####
+#
+# (c) 2006-2010, Bjoern Rennhak
+# Z-shell configuration file - 03_keys
+#
+# Dual licensed under MIT and GPLv2.
+#
+##########
+
+
+# Set X11 keyboard to "jp" configuration
+setxkbmap jp
+
+# Load xmodmap if xmodmap config file exists
+# This will redirect STDERR to /dev/null, that means if you continue to press keys, xmodmap will
+# lock
+[ -f ~/.xmodmap ] && { xmodmap ~/.xmodmap &>/dev/null; };
+
+# Let's start syndaemon once if we enter a zsh session
+# This lets us type in peace without clicking accedentally by touching the touchpad.
+# [ -z `pgrep syndaemon` ] && { syndaemon -t -d; }
+
+# We have custom keys
+[ -z "`pgrep xbindkeys`" ] && { xbindkeys; }
+
+# Some terminals have an issue with the ctrl+r history hook. Let's fix that.
+bindkey -v
+bindkey '\e[3~' delete-char
+bindkey '^R' history-incremental-search-backward
+
+
+# EOF
